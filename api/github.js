@@ -1,11 +1,10 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const { url } = req.query
 
   if (!url) {
     return res.status(400).json({ error: 'Missing url parameter' })
   }
 
-  // Only allow GitHub API calls
   if (!url.startsWith('https://api.github.com/')) {
     return res.status(403).json({ error: 'Only GitHub API URLs are allowed' })
   }
@@ -21,13 +20,11 @@ export default async function handler(req, res) {
   try {
     const response = await fetch(url, { headers })
 
-    // Forward GitHub's status code
     if (!response.ok) {
       const text = await response.text()
       return res.status(response.status).json({ error: text })
     }
 
-    // Check if response is text (README) or JSON
     const contentType = response.headers.get('content-type') || ''
     if (contentType.includes('application/json')) {
       const data = await response.json()
