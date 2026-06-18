@@ -567,11 +567,11 @@ export async function fetchGitHubData(username) {
     readmeRepos.map((repo) => fetchRepoReadme(repo.owner?.login || profile.login, repo.name))
   )
   const readmeScores = readmeResults
-    .filter((r) => r.status === 'fulfilled')
+    .filter((r) => r.status === 'fulfilled' && r.value !== null)
     .map((r) => readmeQualityScore(r.value))
   const readmeQuality = readmeScores.length ? average(readmeScores) : 0
 
-  const recentEvents = await fetchRecentEvents(u)
+  const recentEvents = await fetchRecentEvents(u).catch(() => [])
   const contributionScore = eventContributionScore(recentEvents)
   const pullRequestScore = prEventCount(recentEvents)
   const openSourceContributionScore = clamp(openSourceRatio * 0.6 + contributionScore * 0.4)
