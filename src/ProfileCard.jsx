@@ -6,24 +6,12 @@ export default function ProfileCard({ profile, archetypes, traits }) {
     accountAge, location, company
   } = profile
 
-  const primaryTraitValue = traits?.[archetypes?.primary?.key] ?? 50
   const xpPct = Math.min(100, Math.round(
-    (Math.log10(1 + primaryTraitValue) / Math.log10(101)) * 100
+    (Math.log10(1 + (traits?.shipping ?? 50)) / Math.log10(101)) * 100
   ))
 
-  const levels = {
-    shipping: 'Delivery Champion',
-    technicalDepth: 'Systems Engineer',
-    openSourceImpact: 'Open Source Steward',
-    collaboration: 'Team Catalyst',
-    innovation: 'Product Innovator',
-    aiMlFocus: 'AI/ML Engineer',
-    cvFocus: 'Computer Vision Engineer',
-    roboticsFocus: 'Robotics Engineer',
-  }
-
   const years = accountAge?.years ?? 1
-  const levelLabel = levels[archetypes?.primary?.key] || 'Developer'
+  const levelLabel = years >= 10 ? 'SENIOR' : years >= 5 ? 'MID' : 'JUNIOR'
 
   const primaryLabel = archetypes?.primary?.label ?? 'Unknown Archetype'
   const secondaryLabel = archetypes?.secondary?.label ?? ''
@@ -55,11 +43,11 @@ export default function ProfileCard({ profile, archetypes, traits }) {
             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
-          RECRUITER RANK
+          CLASSIFICATION
         </div>
-        <h3 className="classif-title">{levelLabel}</h3>
+        <h3 className="classif-title">{primaryLabel}</h3>
         <p className="classif-quote">
-          "Primary archetype: {primaryLabel}."
+          "{bio || `Writes code. Ships things. Asks questions later.`}"
         </p>
 
         <div className="xp-row">

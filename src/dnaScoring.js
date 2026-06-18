@@ -3,89 +3,19 @@
 
 const clamp = (n, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n))
 
-function normalize(value, max = 1) {
-  return clamp((value ?? 0) * 100 / max)
-}
-
 export function computeTraits(dna) {
-  const { stats, scoring } = dna
+  const { stats, languages, scoring } = dna
   const repoCount = Math.max(stats.publicRepos, scoring.totalRepos)
 
-  const technicalDepth = clamp(
-    0.28 * scoring.documentationScore * 100 +
-    0.22 * scoring.averageComplexity * 100 +
-    0.18 * scoring.backendCoverage * 100 +
-    0.15 * scoring.deploymentCoverage * 100 +
-    0.12 * scoring.testingCoverage * 100 +
-    0.05 * scoring.realWorldImpactScore * 100
-  )
-
-  const innovation = clamp(
-    0.22 * scoring.originalityScore * 100 +
-    0.2 * scoring.aiMlCoverage * 100 +
-    0.17 * scoring.computerVisionCoverage * 100 +
-    0.16 * scoring.nlpCoverage * 100 +
-    0.15 * scoring.automationCoverage * 100 +
-    0.1 * scoring.realWorldImpactScore * 100
-  )
-
+  const shipping = clamp(repoCount * 2.5)
+  const technicalDepth = clamp(scoring.avgRepoSizeKb / 50)
   const openSourceImpact = clamp(
-    0.4 * scoring.openSourceContributionScore * 100 +
-    0.2 * scoring.openSourceRatio * 100 +
-    0.15 * normalize(stats.totalForks, Math.max(repoCount, 1) * 5) +
-    0.1 * scoring.recentActivityCoverage * 100 +
-    0.1 * scoring.documentationScore * 100 +
-    0.05 * scoring.pullRequestScore * 5
+    repoCount > 0 ? (stats.totalStars / repoCount) * 10 : 0
   )
+  const collaboration = clamp((stats.followers / 10) + (stats.totalForks * 2))
+  const innovation = clamp(scoring.uniqueLanguageCount * 12)
 
-  const collaboration = clamp(
-    0.35 * scoring.openSourceContributionScore * 100 +
-    0.25 * scoring.pullRequestScore * 5 +
-    0.15 * scoring.collaborationCoverage * 100 +
-    0.15 * scoring.documentationScore * 100 +
-    0.1 * scoring.recentActivityCoverage * 100
-  )
-
-  const shipping = clamp(
-    0.22 * normalize(repoCount, 20) +
-    0.18 * scoring.recentActivityCoverage * 100 +
-    0.18 * scoring.realWorldImpactScore * 100 +
-    0.17 * scoring.deploymentCoverage * 100 +
-    0.15 * scoring.documentationScore * 100 +
-    0.1 * scoring.frameworkCoverage * 100
-  )
-
-  const aiMlFocus = clamp(
-    0.6 * scoring.aiMlCoverage * 100 +
-    0.2 * scoring.readmeQuality * 100 +
-    0.1 * scoring.realWorldImpactScore * 100 +
-    0.1 * scoring.backendCoverage * 100
-  )
-
-  const cvFocus = clamp(
-    0.6 * scoring.computerVisionCoverage * 100 +
-    0.2 * scoring.aiMlCoverage * 100 +
-    0.1 * scoring.readmeQuality * 100 +
-    0.1 * scoring.realWorldImpactScore * 100
-  )
-
-  const roboticsFocus = clamp(
-    0.6 * scoring.roboticsCoverage * 100 +
-    0.2 * scoring.aiMlCoverage * 100 +
-    0.1 * scoring.readmeQuality * 100 +
-    0.1 * scoring.realWorldImpactScore * 100
-  )
-
-  return {
-    shipping,
-    technicalDepth,
-    openSourceImpact,
-    collaboration,
-    innovation,
-    aiMlFocus,
-    cvFocus,
-    roboticsFocus,
-  }
+  return { shipping, technicalDepth, openSourceImpact, collaboration, innovation }
 }
 
 /* Each trait has a list of archetypes ordered by score thresholds.
@@ -94,45 +24,30 @@ export function computeTraits(dna) {
    alone reads as "The Polyglot", but Innovation + Shipping reads as "The Architect". */
 const ARCHETYPES = {
   shipping: [
-    { min: 80, label: 'The Delivery Champion' },
-    { min: 50, label: 'The Product Operator' },
-    { min: 20, label: 'The Release Runner' },
-    { min: 0,  label: 'The Portfolio Collector' },
+    { min: 80, label: 'The Shipyard' },
+    { min: 50, label: 'The Prolific Builder' },
+    { min: 20, label: 'The Steady Builder' },
+    { min: 0,  label: 'The Curatorial Mind' },
   ],
   technicalDepth: [
-    { min: 75, label: 'The Systems Engineer' },
-    { min: 40, label: 'The Architecture Lead' },
-    { min: 0,  label: 'The Code Craftsman' },
+    { min: 75, label: 'The Architect' },
+    { min: 40, label: 'The Engineer' },
+    { min: 0,  label: 'The Hacker' },
   ],
   openSourceImpact: [
-    { min: 80, label: 'The Open Source Maintainer' },
-    { min: 40, label: 'The Community Builder' },
+    { min: 80, label: 'The Open Source Champion' },
+    { min: 40, label: 'The Maintainer' },
     { min: 0,  label: 'The Contributor' },
   ],
   collaboration: [
-    { min: 80, label: 'The Team Catalyst' },
-    { min: 40, label: 'The Cross-Functional Partner' },
+    { min: 80, label: 'The Community Pillar' },
+    { min: 40, label: 'The Collaborator' },
     { min: 0,  label: 'The Solo Operator' },
   ],
   innovation: [
-    { min: 80, label: 'The Product Innovator' },
-    { min: 40, label: 'The AI/ML Explorer' },
-    { min: 0,  label: 'The Focused Specialist' },
-  ],
-  aiMlFocus: [
-    { min: 80, label: 'The AI/ML Engineer' },
-    { min: 40, label: 'The Machine Learning Specialist' },
-    { min: 0,  label: 'The Data-Driven Developer' },
-  ],
-  cvFocus: [
-    { min: 80, label: 'The Computer Vision Engineer' },
-    { min: 40, label: 'The Vision Systems Specialist' },
-    { min: 0,  label: 'The Perception Practitioner' },
-  ],
-  roboticsFocus: [
-    { min: 80, label: 'The Robotics Engineer' },
-    { min: 40, label: 'The Embedded Automation Specialist' },
-    { min: 0,  label: 'The Mechatronics Developer' },
+    { min: 80, label: 'The Polyglot' },
+    { min: 40, label: 'The Cross-Domain Explorer' },
+    { min: 0,  label: 'The Specialist' },
   ],
 }
 
@@ -142,9 +57,6 @@ const TRAIT_COLORS = {
   openSourceImpact:   '#FFB454',
   collaboration:      '#FF6BD8',
   innovation:         '#A78BFA',
-  aiMlFocus:          '#7C3AED',
-  cvFocus:            '#F97316',
-  roboticsFocus:      '#14B8A6',
 }
 
 const TRAIT_LABELS = {
@@ -153,9 +65,6 @@ const TRAIT_LABELS = {
   openSourceImpact:   'Open Source Impact',
   collaboration:      'Collaboration',
   innovation:         'Innovation',
-  aiMlFocus:          'AI/ML Focus',
-  cvFocus:            'Computer Vision Focus',
-  roboticsFocus:      'Robotics Focus',
 }
 
 export function deriveArchetypes(traits) {
@@ -182,7 +91,4 @@ export const TRAIT_ORDER = [
   'openSourceImpact',
   'collaboration',
   'innovation',
-  'aiMlFocus',
-  'cvFocus',
-  'roboticsFocus',
 ]

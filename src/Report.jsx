@@ -1,283 +1,32 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo } from 'react'
 import Navbar from './Navbar'
 import ProfileCard from './ProfileCard'
 import LanguageDNA from './LanguageDNA'
 import DNAEngine from './DNAEngine'
-import { analyzeAsGame, getRoast, getTraitsByCategory, getAchievementStats } from './gameAnalyzer.js'
-import { getMetricTier, getMetricColor, getMetricDescription } from './gameScoringMetrics.js'
-import './gameUI.css'
-
-/* ─── Game Metrics Cards ──────────────────────────────── */
-function GameMetricsDisplay({ metrics }) {
-  const metricOrder = [
-    'shippingPower',
-    'chaosEnergy',
-    'innovationSpark',
-    'documentationAura',
-    'openSourceKarma',
-    'technicalWizardry',
-    'mainCharacterEnergy',
-    'buildStability',
-    'sideQuestCompletion',
-    'debuggingResistance',
-  ]
-
-  const metricEmojis = {
-    shippingPower: '📦',
-    chaosEnergy: '⚡',
-    innovationSpark: '✨',
-    documentationAura: '📚',
-    openSourceKarma: '🤝',
-    technicalWizardry: '🧙',
-    mainCharacterEnergy: '⭐',
-    buildStability: '🏗️',
-    sideQuestCompletion: '🎯',
-    debuggingResistance: '🐛',
-  }
-
-  return (
-    <div className="game-metrics-section">
-      <div className="metrics-header">
-        <h2 className="metrics-title">⚡ Game Metrics</h2>
-        <p className="metrics-sub">10 DIMENSIONAL PROFILE</p>
-      </div>
-      <div className="metrics-grid">
-        {metricOrder.map(metric => {
-          const score = metrics[metric] ?? 0
-          const tier = getMetricTier(score)
-          const color = getMetricColor(score)
-          const emoji = metricEmojis[metric] || '📊'
-          const label = metric
-            .replace(/([A-Z])/g, ' $1')
-            .replace(/^./, str => str.toUpperCase())
-            .trim()
-
-          return (
-            <div
-              key={metric}
-              className="metric-card"
-              style={{
-                borderColor: color,
-                backgroundColor: `${color}10`,
-              }}
-            >
-              <div className="metric-emoji">{emoji}</div>
-              <div className="metric-label">{label}</div>
-              <div className="metric-score" style={{ color }}>
-                {Math.round(score)}
-              </div>
-              <div className="metric-tier">{tier}</div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-/* ─── Achievements Display ────────────────────────────– */
-function AchievementsDisplay({ achievements, progress }) {
-  return (
-    <div className="achievements-section">
-      <div className="achievements-header">
-        <h2 className="achievements-title">🏆 Achievements</h2>
-        <p className="achievements-sub">
-          {achievements.totalUnlocked} UNLOCKED · {Object.values(progress).filter(p => p > 0 && p < 100).length} IN PROGRESS
-        </p>
-      </div>
-
-      <div className="achievements-unlocked">
-        <h3>Unlocked ({achievements.unlocked.length})</h3>
-        <div className="achievements-grid">
-          {achievements.unlocked.slice(0, 12).map(ach => (
-            <div key={ach.id} className="achievement-badge">
-              <div className="achievement-emoji">{ach.emoji}</div>
-              <div className="achievement-name">{ach.name}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="achievements-progress">
-        <h3>In Progress</h3>
-        <div className="progress-list">
-          {Object.entries(progress)
-            .filter(([_, p]) => p > 0 && p < 100)
-            .slice(0, 5)
-            .map(([id, percent]) => (
-              <div key={id} className="progress-item">
-                <div className="progress-bar-bg">
-                  <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
-                </div>
-                <span className="progress-percent">{Math.round(percent)}%</span>
-              </div>
-            ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ─── Enhanced DNA Traits ─────────────────────────────– */
-function EnhancedDNATraits({ traits }) {
-  const [selectedCategory, setSelectedCategory] = useState(null)
-
-  const categories = {}
-  for (const trait of traits) {
-    if (!categories[trait.category]) categories[trait.category] = []
-    categories[trait.category].push(trait)
-  }
-
-  const display = selectedCategory
-    ? { [selectedCategory]: categories[selectedCategory] }
-    : categories
-
-  return (
-    <div className="dna-traits-section">
-      <div className="dna-traits-header">
-        <h2 className="dna-traits-title">🧬 DNA Traits</h2>
-        <p className="dna-traits-sub">{traits.length} PERSONALITY MARKERS</p>
-      </div>
-
-      {selectedCategory && (
-        <button className="dna-filter-btn" onClick={() => setSelectedCategory(null)}>
-          ✕ Clear Filter
-        </button>
-      )}
-
-      {Object.entries(display).map(([category, traitList]) => (
-        <div key={category} className="traits-category">
-          <h3
-            className="category-name"
-            onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
-            style={{ cursor: 'pointer' }}
-          >
-            {category.replace(/_/g, ' ').toUpperCase()} ({traitList.length})
-          </h3>
-          <div className="traits-list">
-            {traitList.map(trait => (
-              <div key={trait.id} className="trait-item">
-                <span className="trait-emoji">{trait.emoji}</span>
-                <div className="trait-content">
-                  <div className="trait-name">{trait.name}</div>
-                  <div className="trait-desc">{trait.description}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-/* ─── Archetype Card ───────────────────────────────────– */
-function ArchetypeDisplay({ archetype }) {
-  return (
-    <div className="archetype-display">
-      <div className="archetype-header">
-        <div className="archetype-emoji">{archetype.emoji}</div>
-        <div>
-          <h2 className="archetype-name">{archetype.name}</h2>
-          <p className="archetype-rarity">{archetype.rarity.toUpperCase()} · {archetype.domain}</p>
-        </div>
-      </div>
-
-      <p className="archetype-desc">{archetype.description}</p>
-
-      <div className="archetype-traits">
-        <div className="archetype-section">
-          <h4>Strengths</h4>
-          <ul>
-            {archetype.strengths.map((s, i) => (
-              <li key={i}>✓ {s}</li>
-            ))}
-          </ul>
-        </div>
-        <div className="archetype-section">
-          <h4>Weaknesses</h4>
-          <ul>
-            {archetype.weaknesses.map((w, i) => (
-              <li key={i}>✗ {w}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <p className="archetype-phrase" style={{ fontStyle: 'italic', marginTop: '12px' }}>
-        "{archetype.shareablePhrase}"
-      </p>
-    </div>
-  )
-}
-
-/* ─── Game Roast Engine ───────────────────────────────– */
-function GameRoastEngine({ analysis }) {
-  const [severity, setSeverity] = useState('sarcastic')
-  const roast = getRoast(analysis, severity)
-  const severities = ['gentle', 'sarcastic', 'brutal']
-
-  return (
-    <div className="roast-engine-section">
-      <div className="roast-header">
-        <h2 className="roast-title">🔥 The Roast</h2>
-        <p className="roast-sub">Context-Aware Verdict</p>
-      </div>
-
-      <div className="roast-display">
-        <p className="roast-text">"{roast}"</p>
-      </div>
-
-      <div className="roast-severity-picker">
-        <span className="picker-label">Severity:</span>
-        <div className="severity-buttons">
-          {severities.map(sev => (
-            <button
-              key={sev}
-              className={`severity-btn ${severity === sev ? 'active' : ''}`}
-              onClick={() => setSeverity(sev)}
-            >
-              {sev}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
+import { computeTraits, deriveArchetypes, TRAIT_ORDER } from './dnaScoring.js'
 
 /* ─── Terminal content by severity ─────────────────────── */
 function buildTerminalLines(dna, archetypes, traits, severity) {
-  const { profile, stats, languages, scoring } = dna
+  const { profile, stats, languages } = dna
   const years    = profile.accountAge?.years ?? 1
   const topLang  = languages?.[0]?.name ?? 'Unknown'
   const langCt   = languages?.length ?? 1
   const repoRate = years > 0 ? (stats.publicRepos / years).toFixed(1) : stats.publicRepos
-  const openSourceRatio = Math.round((scoring.openSourceRatio ?? 0) * 100)
-  const prCount = scoring.pullRequestScore ?? 0
-  const docsPct = Math.round((scoring.documentationScore ?? 0) * 100)
-  const deployPct = Math.round((scoring.deploymentCoverage ?? 0) * 100)
-  const htmlRatio = Math.round((scoring.htmlOnlyRatio ?? 0) * 100)
-  const aiMlPct = Math.round((scoring.aiMlCoverage ?? 0) * 100)
-  const cvPct = Math.round((scoring.computerVisionCoverage ?? 0) * 100)
+  const starRatio= stats.publicRepos > 0 ? (stats.totalStars / stats.publicRepos).toFixed(1) : 0
+  const primary  = archetypes.primary.label
+  const secondary= archetypes.secondary.label
   const innovation = Math.round(traits.innovation ?? 50)
   const depth    = Math.round(traits.technicalDepth ?? 50)
-  const mlFocus  = Math.round(traits.aiMlFocus ?? 0)
-  const cvFocus  = Math.round(traits.cvFocus ?? 0)
-  const robotics = Math.round(traits.roboticsFocus ?? 0)
-  const primary = archetypes.primary.label
-  const secondary = archetypes.secondary.label
-  const starRatio= stats.publicRepos > 0 ? (stats.totalStars / stats.publicRepos).toFixed(1) : 0
 
   const sets = {
     gentle: [
       { cls:'t-cyan',  text:`> INITIATING GENOME ANALYSIS: @${profile.login}` },
       { cls:'t-muted', text:`> Archetype detected: ${primary} / ${secondary}` },
       { cls:'t-white', text:`> ${stats.publicRepos} public repos across ${years} year${years !== 1 ? 's' : ''} — ${repoRate} repos/yr` },
-      { cls:'t-green', text:`> Open source ratio: ${openSourceRatio}% · PR activity: ${prCount}` },
-      { cls:'t-white', text:`> Docs coverage: ${docsPct}% · Deployment signal: ${deployPct}%` },
+      { cls:'t-green', text:`> Primary language: ${topLang} (${langCt} total in stack)` },
+      { cls:'t-white', text:`> ${stats.totalStars} stars · ${stats.totalForks} forks · ${stats.followers} followers` },
       { cls:'t-cyan',  text:`> Technical depth: ${depth}/100 · Innovation: ${innovation}/100` },
-      { cls:'t-muted', text:`> AI/ML focus: ${mlFocus}% · CV focus: ${cvFocus}% · Robotics: ${robotics}%` },
+      { cls:'t-muted', text:`> Analysis: A focused developer with clear direction. ${starRatio} stars/repo.` },
     ],
     sarcastic: [
       { cls:'t-cyan',  text:`> GENOME ANALYSIS FOR @${profile.login} (sigh)` },
@@ -311,23 +60,23 @@ function buildTerminalLines(dna, archetypes, traits, severity) {
 }
 
 /* ─── Stats Cards ──────────────────────────────────────── */
-function StatsCards({ stats, scoring }) {
+function StatsCards({ stats }) {
   const cards = [
     {
       id: 'METRIC_01', label: 'Public Repos',
       value: stats.publicRepos, badge: 'COUNTED', badgeCls: 'badge-red', glow: 'glow-cyan',
     },
     {
-      id: 'METRIC_02', label: 'Open Source Ratio',
-      value: `${Math.round((scoring.openSourceRatio ?? 0) * 100)}%`, badge: 'OSS', badgeCls: 'badge-purple', glow: 'glow-purple',
+      id: 'METRIC_02', label: 'Total Stars',
+      value: stats.totalStars, badge: 'EARNED', badgeCls: 'badge-purple', glow: 'glow-purple',
     },
     {
-      id: 'METRIC_03', label: 'PR Activity',
-      value: scoring.pullRequestScore ?? 0, badge: 'COLLAB', badgeCls: 'badge-amber', glow: 'glow-amber',
+      id: 'METRIC_03', label: 'Followers',
+      value: stats.followers, badge: 'WATCHING', badgeCls: 'badge-amber', glow: 'glow-amber',
     },
     {
-      id: 'METRIC_04', label: 'Docs Coverage',
-      value: `${Math.round((scoring.documentationScore ?? 0) * 100)}%`, badge: 'DOCS', badgeCls: 'badge-blue', glow: 'glow-blue',
+      id: 'METRIC_04', label: 'Total Forks',
+      value: stats.totalForks ?? 0, badge: 'FORKED', badgeCls: 'badge-blue', glow: 'glow-blue',
     },
   ]
 
@@ -490,76 +239,24 @@ function Footer({ onReset }) {
 
 /* ─── Report (main export) ─────────────────────────────── */
 export default function Report({ username, dna, onReset }) {
-  const [analysis, setAnalysis] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const traits   = useMemo(() => computeTraits(dna), [dna])
+  const archetypes = useMemo(() => deriveArchetypes(traits), [traits])
+  const overall  = useMemo(
+    () => Math.round(TRAIT_ORDER.reduce((s, k) => s + (traits[k] ?? 0), 0) / TRAIT_ORDER.length),
+    [traits]
+  )
+
   const [newUser, setNewUser] = useState('')
-
-  // Load game analysis on mount
-  useEffect(() => {
-    const loadAnalysis = async () => {
-      try {
-        setLoading(true)
-        const result = await analyzeAsGame(username)
-        setAnalysis(result)
-        setError(null)
-      } catch (err) {
-        setError(err.message)
-        console.error('Analysis error:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (username) {
-      loadAnalysis()
-    }
-  }, [username])
 
   const handleReanalyze = (e) => {
     e.preventDefault()
     const u = newUser.trim().replace(/^@/, '')
-    if (u) {
-      setNewUser('')
-      onReset(u)
-    }
+    if (u) onReset(u)
   }
-
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Navbar avatarUrl={dna?.profile.avatarUrl} onReset={() => onReset(null)} />
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p>Loading game analysis...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Navbar avatarUrl={dna?.profile.avatarUrl} onReset={() => onReset(null)} />
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ textAlign: 'center' }}>
-            <p>Error: {error}</p>
-            <button onClick={() => onReset(null)}>← Go Back</button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!analysis) {
-    return <div>No analysis available</div>
-  }
-
-  const { gameAnalysis } = analysis
-  const overall = gameAnalysis.overallScore
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <Navbar avatarUrl={analysis.profile.avatarUrl} onReset={() => onReset(null)} />
+    <div style={{ display:'flex', flexDirection:'column', minHeight:'100vh' }}>
+      <Navbar avatarUrl={dna.profile.avatarUrl} onReset={() => onReset(null)} />
 
       {/* Sub-header */}
       <div className="hero-bar">
@@ -569,7 +266,7 @@ export default function Report({ username, dna, onReset }) {
               ⚡ Analyzing: @{username}
             </div>
             <p className="hero-bar-sub">
-              GAME ANALYSIS COMPLETE · OVERALL SCORE: {Math.round(overall)}/100
+              GENOME SEQUENCED · {dna.languages?.length ?? 0} LANGUAGES · {dna.stats.publicRepos} REPOS
             </p>
           </div>
           <form className="hero-bar-form" onSubmit={handleReanalyze}>
@@ -589,26 +286,29 @@ export default function Report({ username, dna, onReset }) {
 
       {/* Main content */}
       <main className="report-main">
-        {/* Archetype Display */}
-        <ArchetypeDisplay archetype={gameAnalysis.archetype} />
 
-        {/* Game Metrics */}
-        <GameMetricsDisplay metrics={gameAnalysis.metrics} />
+        {/* Row 1: Classification card + Stats */}
+        <div className="two-col">
+          <ProfileCard
+            profile={dna.profile}
+            archetypes={archetypes}
+            traits={traits}
+          />
+          <StatsCards stats={dna.stats} />
+        </div>
 
-        {/* Roast Engine */}
-        <GameRoastEngine analysis={analysis} />
+        {/* Row 2: Terminal + Gradient card */}
+        <div className="two-col-b">
+          <TerminalSection dna={dna} archetypes={archetypes} traits={traits} />
+          <GradCard dna={dna} archetypes={archetypes} />
+        </div>
 
-        {/* DNA Traits */}
-        <EnhancedDNATraits traits={gameAnalysis.dnaTraits} />
+        {/* Row 3: Language DNA */}
+        <LanguageDNA languages={dna.languages} />
 
-        {/* Achievements */}
-        <AchievementsDisplay
-          achievements={gameAnalysis.achievements}
-          progress={gameAnalysis.achievements.progress}
-        />
+        {/* Row 4: DNA Engine */}
+        <DNAEngine traits={traits} archetypes={archetypes} overall={overall} />
 
-        {/* Original sections for compatibility */}
-        <LanguageDNA languages={analysis.languages} />
       </main>
 
       <Footer onReset={() => onReset(null)} />
