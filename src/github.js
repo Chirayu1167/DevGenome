@@ -171,18 +171,14 @@ function readmeQualityScore(readmeText) {
 
 async function ghFetchText(url) {
   const res = await fetch(proxyUrl(url))
-  if (res.status === 404) return null
+  if (res.status === 404) throw new GitHubError('Resource not found', 'not_found')
   if (res.status === 403) throw new GitHubError('Rate limit exceeded', 'rate_limited')
-  if (!res.ok) return null
+  if (!res.ok) throw new GitHubError(`GitHub request failed (${res.status})`, 'unknown')
   return res.text()
 }
 
 async function fetchRepoReadme(owner, repo) {
-  try {
-    return await ghFetchText(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/readme`)
-  } catch (e) {
-    return null
-  }
+  return ghFetchText(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/readme`)
 }
 
 function repoComplexityScore(repo) {
@@ -267,10 +263,9 @@ async function ghFetch(url) {
   const res = await fetch(proxyUrl(url))
   if (res.status === 404) throw new GitHubError('Profile not found', 'not_found')
   if (res.status === 403) throw new GitHubError('Rate limit exceeded', 'rate_limited')
-  if (res.status === 500) throw new GitHubError('Server error', 'unknown')
   if (!res.ok) throw new GitHubError(`GitHub request failed (${res.status})`, 'unknown')
   const data = await res.json()
-  if (data && data.error) throw new GitHubError(data.error, 'unknown')
+  if (data && !Array.isArray(data) && data.error) throw new GitHubError(data.error, 'unknown')
   return data
 }
 
@@ -501,13 +496,11 @@ export async function fetchGitHubData(username) {
 
   // 1. Profile
   const profile = await ghFetch(`https://api.github.com/users/${encodeURIComponent(u)}`)
-  if (!profile || !profile.login) throw new GitHubError('Profile not found', 'not_found')
 
   // 2. All public repos, most-recently-updated first
   const repos = await ghFetch(
     `https://api.github.com/users/${encodeURIComponent(u)}/repos?per_page=100&sort=updated`
   )
-  if (!Array.isArray(repos)) throw new GitHubError('Failed to fetch repositories', 'unknown')
 
   // 3. Aggregate stats
   const totalStars    = repos.reduce((s, r) => s + (r.stargazers_count || 0), 0)
@@ -566,14 +559,7 @@ export async function fetchGitHubData(username) {
     ? ownRepos.filter(repoIsRecent).length / ownRepos.length
     : 0
 
-  const readmeRepos = topNByStars(ownRepos, 6)
-  const readmeResults = await Promise.allSettled(
-    readmeRepos.map((repo) => fetchRepoReadme(repo.owner?.login || profile.login, repo.name))
-  )
-  const readmeScores = readmeResults
-    .filter((r) => r.status === 'fulfilled' && r.value !== null)
-    .map((r) => readmeQualityScore(r.value))
-  const readmeQuality = readmeScores.length ? average(readmeScores) : 0
+  const readmeQuality = 0
 
   const recentEvents = await fetchRecentEvents(u).catch(() => [])
   const contributionScore = eventContributionScore(recentEvents)
