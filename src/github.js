@@ -178,7 +178,11 @@ async function ghFetchText(url) {
 }
 
 async function fetchRepoReadme(owner, repo) {
-  return ghFetchText(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/readme`)
+  try {
+    return await ghFetchText(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/readme`)
+  } catch (e) {
+    return null
+  }
 }
 
 function repoComplexityScore(repo) {
