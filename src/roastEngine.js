@@ -325,7 +325,7 @@ export function generateRoast(profile, dna, archetype, severity = 'sarcastic') {
   if (!profile || !archetype) return 'Your profile is too mysterious to roast.';
 
   const templates = ROAST_TEMPLATES[archetype.id] || ROAST_TEMPLATES.default;
-  const roastPool = templates[severity] || templates.sarcastic;
+  const roastPool = templates[severity] || templates.sarcastic || templates.default || ['Your profile speaks for itself.'];
 
   // Pick a random roast template
   const template = roastPool[Math.floor(Math.random() * roastPool.length)];
