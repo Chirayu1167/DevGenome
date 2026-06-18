@@ -715,29 +715,94 @@ export function getRandomArchetype() {
   return all[Math.floor(Math.random() * all.length)];
 }
 
+/**
+ * Additive archetype selection.
+ *
+ * Each archetype accumulates a fitness score based on how well the developer's
+ * metrics match its triggerConditions — no single hard gate can disqualify a
+ * strong domain fit.  Popularity signals (stars, followers) are intentionally
+ * absent from the trigger conditions; they live in mainCharacterEnergy instead.
+ *
+ * Score breakdown per condition key:
+ *   - condition met fully  → +2 pts
+ *   - condition partially met (≥50% of threshold) → +1 pt
+ *   - condition missed     → 0 pts (NOT a disqualifier)
+ *
+ * Rarity weight breaks ties in favour of rarer archetypes.
+ * A minimum floor of 1 total point ensures at least some signal before an
+ * archetype is considered.
+ */
 export function selectArchetype(metrics) {
-  // Score-based archetype selection
-  // This will be called with computed metrics from github.js
-  // Returns the best matching archetype based on trigger conditions
-  // Implementation details in main scoring logic
-  const candidates = Object.values(ARCHETYPES)
-    .filter((archetype) => matchesConditions(archetype.triggerConditions, metrics))
-    .sort((a, b) => rarityWeight(b.rarity) - rarityWeight(a.rarity));
+  const scored = Object.values(ARCHETYPES)
+    .map((archetype) => ({
+      archetype,
+      score: archetypeFitScore(archetype.triggerConditions, metrics),
+      rarity: rarityWeight(archetype.rarity),
+    }))
+    .filter(({ score }) => score >= 1)               // needs at least one signal
+    .sort((a, b) =>
+      // Primary: fit score; secondary: rarity (rare > common on ties)
+      b.score !== a.score
+        ? b.score - a.score
+        : b.rarity - a.rarity
+    );
 
-  return candidates[0] || getRandomArchetype();
+  return scored[0]?.archetype || getRandomArchetype();
 }
 
-function matchesConditions(conditions, metrics) {
-  // Helper to match trigger conditions against metrics
+/**
+ * Compute additive fit score for one archetype against developer metrics.
+ * Each condition key contributes independently — no single miss is fatal.
+ */
+function archetypeFitScore(conditions, metrics) {
+  let score = 0;
+  let maxPossible = 0;
+
   for (const [key, condition] of Object.entries(conditions)) {
     const value = metrics[key];
-    if (!value) continue;
+    maxPossible += 2;
 
-    if (condition.min && value < condition.min) return false;
-    if (condition.max && value > condition.max) return false;
-    if (condition.includes && !condition.includes.includes(value)) return false;
+    if (value === undefined || value === null) continue;
+
+    if (condition.min !== undefined) {
+      if (value >= condition.min) {
+        score += 2;
+      } else if (value >= condition.min * 0.5) {
+        score += 1;                                  // partial credit at 50%+ of threshold
+      }
+      continue;
+    }
+
+    if (condition.max !== undefined) {
+      if (value <= condition.max) {
+        score += 2;
+      } else if (value <= condition.max * 1.5) {
+        score += 1;                                  // partial credit — slightly over
+      }
+      continue;
+    }
+
+    if (condition.includes !== undefined) {
+      // Array.isArray guard handles both list-of-values and single-value includes
+      const list = Array.isArray(condition.includes) ? condition.includes : [condition.includes];
+      const metricList = Array.isArray(value) ? value : [value];
+      const matches = list.filter((v) => metricList.includes(v)).length;
+      if (matches > 0) score += 2;
+      continue;
+    }
+
+    if (condition.includesKeywords !== undefined) {
+      // Boolean/string keyword match
+      if (value === true || value === condition.includesKeywords) score += 2;
+      continue;
+    }
+
+    // Boolean conditions
+    if (condition === true && value === true) score += 2;
   }
-  return true;
+
+  // Normalise to [0, 10] so different-sized condition sets are comparable
+  return maxPossible > 0 ? (score / maxPossible) * 10 : 0;
 }
 
 function rarityWeight(rarity) {
