@@ -7,7 +7,7 @@ export default function Navbar({ avatarUrl, onReset }) {
         <div className="nav-logo" onClick={onReset} role="button" tabIndex={0}
           onKeyDown={e => e.key === 'Enter' && onReset?.()}>
           <span className="nav-logo-text">DEV.WRAPPED</span>
-          <span className="nav-badge">2024 EDITION</span>
+          <span className="nav-badge">2026 EDITION</span>
         </div>
         <div className="nav-actions">
           {onReset && (
