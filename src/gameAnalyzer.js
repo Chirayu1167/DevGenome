@@ -23,8 +23,10 @@ export async function analyzeAsGame(username) {
     const gameMetrics = calculateAllMetrics(dna)
     const overall = calculateOverallScore(gameMetrics)
 
-    // Step 3: Select archetype based on metrics
-    const archetype = selectArchetype(gameMetrics)
+    // Step 3: Select archetype based on metrics + raw scoring signals
+    // Merge raw scoring into the metrics so archetypes can reference domain signals
+    // like aiMlCoverage, deploymentCoverage, etc. alongside the 10 game metrics.
+    const archetype = selectArchetype({ ...gameMetrics, ...dna.scoring })
 
     // Step 4: Extract DNA traits (8-12 traits)
     const dnaTraits = selectTraitsForDeveloper(gameMetrics, 10)
