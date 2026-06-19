@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import Navbar from './Navbar'
 import Helix from './Helix'
 
-export default function Hero({ onAnalyze, loading }) {
+export default function Hero({ onAnalyze, onCompare, loading }) {
   const [username, setUsername] = useState('')
 
   const handleSubmit = (e) => {
@@ -13,7 +13,7 @@ export default function Hero({ onAnalyze, loading }) {
 
   return (
     <div className="landing-page">
-      <Navbar />
+      <Navbar onCompare={onCompare} />
       <div className="hero-content">
         <div className="hero-helix-bg" aria-hidden="true">
           <Helix />
@@ -57,6 +57,12 @@ export default function Hero({ onAnalyze, loading }) {
           <span style={{ color: 'var(--dim)' }}>·</span>
           <span className="ck">✓</span> 100% judgment-based
         </p>
+
+        {onCompare && (
+          <button className="hero-compare-link" onClick={onCompare}>
+            ⚔ Or settle a debate — compare two profiles head-to-head →
+          </button>
+        )}
       </div>
     </div>
   )

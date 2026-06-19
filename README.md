@@ -12,6 +12,17 @@ Enter a GitHub username and the app:
 4. Unlocks achievements and generates gentle / sarcastic / brutal roasts.
 5. Renders it all as an animated DNA helix report you can screenshot and share.
 
+### Compare two developers head-to-head
+
+Click **⚔ Compare** in the nav (or the link under the main form) to pit two GitHub usernames against each other. The compare report mirrors the single-profile UI — same visual language, same archetypes and traits — but side by side:
+
+- Dueling profile cards with a "leading" crown on the higher overall score
+- Stat-for-stat showdown (repos, stars, followers, forks, top language)
+- Trait-by-trait breakdown with mirrored bars for all 5 DNA traits
+- A verdict terminal with gentle / sarcastic / brutal tone options and a final winner call
+
+Starting a compare from an existing single-profile report pre-fills that profile as the first contender.
+
 ## Scoring philosophy
 
 The engine is built to feel **fair, not popularity-contest-y**:
@@ -60,6 +71,7 @@ src/
   roastEngine.js             gentle / sarcastic / brutal roast generation
   Helix.jsx, DNAEngine.jsx  DNA helix visualization
   Report.jsx, ProfileCard.jsx, LanguageDNA.jsx   report UI
+  CompareHero.jsx, CompareLoading.jsx, CompareError.jsx, CompareReport.jsx   head-to-head comparison flow
 api/
   github.mjs                serverless proxy to the GitHub REST API
 ```

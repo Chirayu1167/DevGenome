@@ -238,7 +238,7 @@ function Footer({ onReset }) {
 }
 
 /* ─── Report (main export) ─────────────────────────────── */
-export default function Report({ username, dna, onReset }) {
+export default function Report({ username, dna, onReset, onCompare }) {
   const traits   = useMemo(() => computeTraits(dna), [dna])
   const archetypes = useMemo(() => deriveArchetypes(traits), [traits])
   const overall  = useMemo(
@@ -256,7 +256,7 @@ export default function Report({ username, dna, onReset }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', minHeight:'100vh' }}>
-      <Navbar avatarUrl={dna.profile.avatarUrl} onReset={() => onReset(null)} />
+      <Navbar avatarUrl={dna.profile.avatarUrl} onReset={() => onReset(null)} onCompare={onCompare} />
 
       {/* Sub-header */}
       <div className="hero-bar">

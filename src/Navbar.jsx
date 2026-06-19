@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Navbar({ avatarUrl, onReset }) {
+export default function Navbar({ avatarUrl, onReset, onCompare, activeView }) {
   return (
     <nav className="navbar">
       <div className="navbar-inner">
@@ -10,6 +10,14 @@ export default function Navbar({ avatarUrl, onReset }) {
           <span className="nav-badge">2026 EDITION</span>
         </div>
         <div className="nav-actions">
+          {onCompare && (
+            <button
+              className={`nav-compare-btn ${activeView === 'compare' ? 'is-active' : ''}`}
+              onClick={onCompare}
+            >
+              ⚔ Compare
+            </button>
+          )}
           {onReset && (
             <button className="nav-reset-btn" onClick={onReset}>↩ Reset</button>
           )}

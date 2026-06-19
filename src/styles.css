@@ -88,6 +88,14 @@ img { display: block; max-width: 100%; }
   animation: pulse-op 2.5s ease-in-out infinite;
 }
 .nav-actions { display: flex; align-items: center; gap: 12px; }
+.nav-compare-btn {
+  background: rgba(207,92,255,.1); border: 1px solid rgba(207,92,255,.3);
+  color: var(--lilac); font-family: var(--ff-mono); font-size: 10px;
+  padding: 6px 12px; border-radius: 6px;
+  transition: background .2s, border-color .2s; text-transform: uppercase; letter-spacing: .05em;
+}
+.nav-compare-btn:hover { background: rgba(207,92,255,.22); }
+.nav-compare-btn.is-active { background: rgba(207,92,255,.3); border-color: var(--purple); }
 .nav-avatar {
   width: 32px; height: 32px; border-radius: 50%;
   border: 2px solid var(--lilac); object-fit: cover;
@@ -187,6 +195,33 @@ img { display: block; max-width: 100%; }
   display: flex; align-items: center; gap: 8px;
 }
 .hero-disclaimer .ck { color: var(--cyan); }
+.hero-compare-link {
+  background: none; border: none; color: var(--muted);
+  font-family: var(--ff-mono); font-size: 12px; cursor: pointer;
+  padding: 4px 0; transition: color .2s; text-decoration: none;
+}
+.hero-compare-link:hover { color: var(--lilac); }
+
+/* VS comparison form on the compare landing page */
+.vs-form { max-width: 620px; gap: 14px; }
+.vs-input-row {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+}
+.vs-input-row .hero-input { flex: 1; min-width: 0; }
+.vs-divider {
+  font-family: var(--ff-mono); font-weight: 800; font-size: 13px;
+  color: var(--purple); flex-shrink: 0;
+  background: rgba(207,92,255,.12); border: 1px solid rgba(207,92,255,.3);
+  border-radius: 999px; padding: 6px 10px;
+}
+@media (max-width: 640px) {
+  .vs-input-row { flex-direction: column; }
+  .vs-divider { transform: rotate(90deg); }
+}
+.vs-same-warning {
+  font-family: var(--ff-mono); font-size: 11px; color: var(--amber);
+  text-align: center; width: 100%;
+}
 
 /* ─── LOADING PAGE ────────────────────────────────── */
 .loading-page {
@@ -650,3 +685,123 @@ img { display: block; max-width: 100%; }
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* ─── COMPARE: DUEL HEADER ────────────────────────── */
+.duel-header {
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px;
+  align-items: center;
+}
+@media (max-width: 768px) {
+  .duel-header { grid-template-columns: 1fr; }
+}
+.duel-side {
+  background: linear-gradient(135deg,rgba(207,92,255,.1) 0%,var(--surface) 50%,transparent 100%);
+  border-radius: 20px; border: 1px solid var(--border);
+  padding: 28px 24px; display: flex; flex-direction: column;
+  align-items: center; text-align: center; gap: 10px;
+  position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  transition: border-color .3s, box-shadow .3s;
+}
+.duel-side.is-winner {
+  border-color: rgba(251,191,36,.5);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4), 0 0 40px rgba(251,191,36,.15);
+}
+.duel-crown {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(90deg,#fbbf24,#f59e0b); color: #1a1a1a;
+  font-family: var(--ff-mono); font-size: 10px; font-weight: 800;
+  padding: 4px 12px; border-radius: 999px; letter-spacing: .08em;
+  box-shadow: 0 4px 14px rgba(251,191,36,.4); white-space: nowrap;
+}
+.duel-avatar-wrap { margin-top: 6px; }
+.duel-avatar {
+  width: 110px; height: 110px; border-radius: 50%;
+  border: 4px solid var(--deep); object-fit: cover;
+  box-shadow: 0 0 40px rgba(207,92,255,.3);
+}
+.duel-name { font-size: 1.5rem; font-weight: 800; letter-spacing: -.03em; }
+.duel-handle {
+  font-family: var(--ff-mono); font-size: 11px; color: var(--cyan);
+  text-transform: uppercase; letter-spacing: .12em;
+}
+.duel-archetype-tag {
+  background: var(--card); border: 1px solid rgba(207,92,255,.35);
+  color: #f8d8ff; font-family: var(--ff-mono); font-size: 11px;
+  padding: 6px 14px; border-radius: 999px; margin-top: 6px;
+}
+.duel-score {
+  font-size: 2.6rem; font-weight: 800; letter-spacing: -.05em;
+  background: linear-gradient(90deg,var(--cyan),var(--purple));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; line-height: 1; margin-top: 8px;
+}
+.duel-score-unit { font-size: 1.1rem; color: var(--dim); -webkit-text-fill-color: var(--dim); }
+.duel-score-lbl {
+  font-family: var(--ff-mono); font-size: 9px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .12em;
+}
+.duel-vs-badge {
+  display: flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--card); border: 2px solid var(--purple);
+  font-family: var(--ff-mono); font-weight: 800; font-size: 13px;
+  color: var(--lilac); box-shadow: 0 0 24px rgba(207,92,255,.35);
+  flex-shrink: 0; justify-self: center;
+}
+@media (max-width: 768px) { .duel-vs-badge { margin: -8px auto; } }
+
+/* ─── COMPARE: STAT DUEL ROWS ─────────────────────── */
+.stat-duel-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 6px 0;
+}
+.stat-duel-row {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; gap: 16px; padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.stat-duel-row:last-child { border-bottom: none; }
+.stat-duel-val {
+  font-family: var(--ff-mono); font-size: 1.1rem; font-weight: 700; color: var(--text);
+}
+.stat-duel-val.left  { text-align: right; }
+.stat-duel-val.right { text-align: left; }
+.stat-duel-val.duel-val-win { color: var(--cyan); text-shadow: 0 0 12px rgba(0,220,229,.4); }
+.stat-duel-lbl {
+  font-family: var(--ff-mono); font-size: 10px; color: var(--dim);
+  text-transform: uppercase; letter-spacing: .08em; text-align: center; white-space: nowrap;
+}
+
+/* ─── COMPARE: TRAIT-BY-TRAIT BARS ────────────────── */
+.duel-legend { display: flex; gap: 16px; font-family: var(--ff-mono); font-size: 11px; }
+.duel-legend-a { color: var(--cyan); }
+.duel-legend-b { color: var(--purple); }
+.duel-traits-list { display: flex; flex-direction: column; gap: 22px; }
+.duel-trait-row {}
+.duel-trait-top {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; gap: 12px; margin-bottom: 6px;
+}
+.duel-trait-val {
+  font-family: var(--ff-mono); font-size: 13px; font-weight: 700; color: var(--dim);
+}
+.duel-trait-top .duel-trait-val:first-child { text-align: right; }
+.duel-trait-top .duel-trait-val:last-child  { text-align: left; }
+.duel-trait-val.duel-val-win { color: #fff; }
+.duel-trait-lbl {
+  font-family: var(--ff-mono); font-size: 11px; font-weight: 600;
+  text-align: center; white-space: nowrap;
+}
+.duel-trait-track {
+  display: grid; grid-template-columns: 1fr 2px 1fr;
+  align-items: center; height: 10px;
+}
+.duel-trait-fill-a {
+  height: 100%; border-radius: 999px 0 0 999px; opacity: .85;
+  margin-left: auto; transition: width 1s ease;
+}
+.duel-trait-fill-b {
+  height: 100%; border-radius: 0 999px 999px 0; opacity: .85;
+  transition: width 1s ease;
+}
+.duel-trait-mid { height: 100%; background: var(--border-hi); }
