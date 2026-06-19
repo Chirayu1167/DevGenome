@@ -805,3 +805,60 @@ img { display: block; max-width: 100%; }
   transition: width 1s ease;
 }
 .duel-trait-mid { height: 100%; background: var(--border-hi); }
+
+/* ─── SHARE MODAL ──────────────────────────────────── */
+@keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-pop-in  { from { opacity: 0; transform: scale(.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+.share-modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(5,5,5,.78); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; animation: modal-fade-in .2s ease;
+}
+.share-modal {
+  background: var(--surface); border: 1px solid var(--border-hi);
+  border-radius: 20px; max-width: 640px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6);
+  animation: modal-pop-in .25s ease;
+}
+.share-modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px; border-bottom: 1px solid var(--border);
+  font-weight: 700; font-size: 1rem; color: var(--text);
+}
+.share-modal-close {
+  background: none; border: none; color: var(--muted);
+  font-size: 16px; cursor: pointer; padding: 4px 8px;
+  border-radius: 6px; transition: color .2s, background .2s;
+}
+.share-modal-close:hover { color: var(--text); background: rgba(255,255,255,.06); }
+.share-modal-body {
+  padding: 20px 22px 4px; display: flex; align-items: center; justify-content: center;
+  min-height: 180px;
+}
+.share-modal-loading {
+  font-family: var(--ff-mono); font-size: 13px; color: var(--muted); padding: 40px 0;
+}
+.share-preview-img {
+  width: 100%; border-radius: 12px; border: 1px solid var(--border);
+  box-shadow: 0 10px 40px rgba(0,0,0,.4);
+}
+.share-modal-actions {
+  display: flex; gap: 12px; padding: 18px 22px 8px;
+}
+.share-action-btn {
+  width: auto; flex: 1; padding: 12px 18px; font-size: .875rem;
+}
+.share-action-secondary {
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--border-hi);
+}
+.share-action-secondary:hover:not(:disabled) { filter: none; background: rgba(255,255,255,.06); }
+.share-caption-preview {
+  margin: 4px 22px 22px; padding: 14px 16px;
+  background: var(--deep); border: 1px solid var(--border);
+  border-radius: 10px; font-family: var(--ff-mono); font-size: 12px;
+  color: var(--sub); white-space: pre-wrap; line-height: 1.6;
+}

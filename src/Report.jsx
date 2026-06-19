@@ -3,7 +3,9 @@ import Navbar from './Navbar'
 import ProfileCard from './ProfileCard'
 import LanguageDNA from './LanguageDNA'
 import DNAEngine from './DNAEngine'
+import ShareButton from './ShareButton.jsx'
 import { computeTraits, deriveArchetypes, TRAIT_ORDER } from './dnaScoring.js'
+import { renderSoloShareCard, buildSoloCaption } from './shareCard.js'
 
 /* ─── Terminal content by severity ─────────────────────── */
 function buildTerminalLines(dna, archetypes, traits, severity) {
@@ -222,7 +224,7 @@ function GradCard({ dna, archetypes }) {
 }
 
 /* ─── Footer ────────────────────────────────────────────── */
-function Footer({ onReset }) {
+function Footer({ onReset, shareRender, shareCaption, shareFilename }) {
   return (
     <footer className="site-footer">
       <span className="footer-copy">
@@ -230,7 +232,7 @@ function Footer({ onReset }) {
       </span>
       <div className="footer-links">
         <button className="footer-link lc" onClick={onReset}>↩ Re-Analyze</button>
-        <button className="footer-link lp crossed" disabled>Share (coming soon)</button>
+        <ShareButton render={shareRender} caption={shareCaption} filename={shareFilename} />
         <button className="footer-link lr crossed" disabled>Export PDF (lol)</button>
       </div>
     </footer>
@@ -253,6 +255,32 @@ export default function Report({ username, dna, onReset, onCompare }) {
     const u = newUser.trim().replace(/^@/, '')
     if (u) onReset(u)
   }
+
+  const topLang = dna.languages?.[0]?.name ?? 'Unknown'
+
+  // Pull one punchy line from the brutal roast set for the share card quote
+  const shareTopLine = useMemo(() => {
+    const lines = buildTerminalLines(dna, archetypes, traits, 'brutal')
+    const candidate = lines.find(l => l.cls === 't-red' && l.text.length < 90) ?? lines[0]
+    return candidate?.text.replace(/^>\s*/, '').replace(/^⚠\s*/, '') ?? ''
+  }, [dna, archetypes, traits])
+
+  const shareRender = () => renderSoloShareCard({
+    profile: dna.profile,
+    archetype: archetypes.primary.label,
+    secondaryLabel: archetypes.secondary.label,
+    overall,
+    traits,
+    topLine: shareTopLine,
+    topLang,
+  })
+
+  const shareCaption = buildSoloCaption({
+    login: username,
+    archetype: archetypes.primary.label,
+    overall,
+    topLang,
+  })
 
   return (
     <div style={{ display:'flex', flexDirection:'column', minHeight:'100vh' }}>
@@ -311,7 +339,12 @@ export default function Report({ username, dna, onReset, onCompare }) {
 
       </main>
 
-      <Footer onReset={() => onReset(null)} />
+      <Footer
+        onReset={() => onReset(null)}
+        shareRender={shareRender}
+        shareCaption={shareCaption}
+        shareFilename={`devwrapped-${username}.png`}
+      />
     </div>
   )
 }

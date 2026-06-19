@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react'
 import Navbar from './Navbar'
+import ShareButton from './ShareButton.jsx'
 import { computeTraits, deriveArchetypes, getTraitMeta, TRAIT_ORDER } from './dnaScoring.js'
+import { renderDuelShareCard, buildDuelCaption } from './shareCard.js'
 
 /* ─── Helpers ──────────────────────────────────────────── */
 function overallOf(traits) {
@@ -248,7 +250,7 @@ function VerdictTerminal({ dnaA, dnaB, archA, archB, overallA, overallB }) {
 }
 
 /* ─── Footer ────────────────────────────────────────────── */
-function Footer({ onReset, onNewCompare }) {
+function Footer({ onReset, onNewCompare, shareRender, shareCaption, shareFilename }) {
   return (
     <footer className="site-footer">
       <span className="footer-copy">
@@ -256,6 +258,7 @@ function Footer({ onReset, onNewCompare }) {
       </span>
       <div className="footer-links">
         <button className="footer-link lc" onClick={onNewCompare}>⚔ New Comparison</button>
+        <ShareButton render={shareRender} caption={shareCaption} filename={shareFilename} label="📸 Share Duel" />
         <button className="footer-link lp" onClick={onReset}>↩ Back to Single Analysis</button>
       </div>
     </footer>
@@ -270,6 +273,32 @@ export default function CompareReport({ usernameA, usernameB, dnaA, dnaB, onRese
   const archB   = useMemo(() => deriveArchetypes(traitsB), [traitsB])
   const overallA = useMemo(() => overallOf(traitsA), [traitsA])
   const overallB = useMemo(() => overallOf(traitsB), [traitsB])
+  const winner = pickWinner(overallA, overallB)
+
+  const shareRender = () => renderDuelShareCard({
+    a: {
+      login: dnaA.profile.login,
+      avatarUrl: dnaA.profile.avatarUrl,
+      archetype: archA.primary.label,
+      overall: overallA,
+    },
+    b: {
+      login: dnaB.profile.login,
+      avatarUrl: dnaB.profile.avatarUrl,
+      archetype: archB.primary.label,
+      overall: overallB,
+    },
+    winnerSide: winner === 'tie' ? null : winner,
+  })
+
+  const shareCaption = buildDuelCaption({
+    loginA: usernameA,
+    loginB: usernameB,
+    archetypeA: archA.primary.label,
+    archetypeB: archB.primary.label,
+    overallA,
+    overallB,
+  })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -306,7 +335,13 @@ export default function CompareReport({ usernameA, usernameB, dnaA, dnaB, onRese
         />
       </main>
 
-      <Footer onReset={onReset} onNewCompare={onNewCompare} />
+      <Footer
+        onReset={onReset}
+        onNewCompare={onNewCompare}
+        shareRender={shareRender}
+        shareCaption={shareCaption}
+        shareFilename={`devwrapped-duel-${usernameA}-vs-${usernameB}.png`}
+      />
     </div>
   )
 }

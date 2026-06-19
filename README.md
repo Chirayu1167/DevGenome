@@ -23,6 +23,10 @@ Click **⚔ Compare** in the nav (or the link under the main form) to pit two Gi
 
 Starting a compare from an existing single-profile report pre-fills that profile as the first contender.
 
+### Share your result as an image
+
+Both the solo report and the compare duel have a **📸 Share Card** / **📸 Share Duel** button in the footer. It renders a branded 1200×630 PNG (avatar, archetype, score, top trait bars, a roast line) entirely client-side via the Canvas API — no server round-trip, no extra dependencies. Alongside the download, a ready-to-post caption is auto-generated and copyable in one click, so sharing the result on LinkedIn/Twitter takes zero extra writing.
+
 ## Scoring philosophy
 
 The engine is built to feel **fair, not popularity-contest-y**:
@@ -72,6 +76,8 @@ src/
   Helix.jsx, DNAEngine.jsx  DNA helix visualization
   Report.jsx, ProfileCard.jsx, LanguageDNA.jsx   report UI
   CompareHero.jsx, CompareLoading.jsx, CompareError.jsx, CompareReport.jsx   head-to-head comparison flow
+  shareCard.js              Canvas-based PNG renderer + caption generator for sharing
+  ShareButton.jsx           reusable share modal (preview, download, copy caption)
 api/
   github.mjs                serverless proxy to the GitHub REST API
 ```
